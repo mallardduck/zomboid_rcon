@@ -1,47 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:zomboid_rcon/servers/servers.dart';
 
-import '../models/server.dart';
-import 'add_server.dart';
+import 'add_edit_server.dart';
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final List<Server> _servers = [];
-
-  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(title),
       ),
-      body: ListView.builder(
-        itemCount: _servers.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text("${_servers[index].name} ${index + 1}"),
-          );
-        },
-      ),
+      body: const ServersListView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context,
-            MaterialPageRoute(builder: (context) => const AddEditServerPage(title: "Add Server")),
+            context,
+            MaterialPageRoute(builder: (context) => AddEditServerPage(title: "Add Server")),
           );
         },
         tooltip: 'Add Server',
@@ -49,4 +30,40 @@ class _MyHomePageState extends State<MyHomePage> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+}
+
+class ServersListView extends ConsumerWidget {
+  const ServersListView({Key? key}): super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    List<Server> servers = ref.watch(serversProvider);
+
+    int index = 0;
+    return ListView(
+      children: [
+        ...servers.map((server) {
+          index++;
+          return ListTile(
+            title: Text("$index - ${server.name}"),
+            trailing: IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddEditServerPage(
+                      title: "Edit Server",
+                      editServer: server,
+                  )),
+                );
+              },
+            ),
+            onLongPress: () => ref.read(serversProvider.notifier).removeServer(server.id),
+          );
+        })
+      ],
+    );
+  }
+  
 }
