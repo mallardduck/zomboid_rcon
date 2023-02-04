@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zomboid_rcon/servers/servers.dart';
 
+import '../../terminal/pages/rcon.dart';
 import 'add_edit_server.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -22,7 +23,7 @@ class MyHomePage extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddEditServerPage(title: "Add Server")),
+            MaterialPageRoute(builder: (context) => const AddEditServerPage(title: "Add Server")),
           );
         },
         tooltip: 'Add Server',
@@ -59,7 +60,32 @@ class ServersListView extends ConsumerWidget {
                 );
               },
             ),
-            onLongPress: () => ref.read(serversProvider.notifier).removeServer(server.id),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RconPage(server: server)),
+              );
+            },
+            onLongPress: () => showDialog<String>(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                  title: const Text('Confirm Delete Server?'),
+                  content: const Text('Are you sure you want to delete this server item?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'Cancel'),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        ref.read(serversProvider.notifier).removeServer(server.id);
+                        Navigator.pop(context, 'OK');
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                )
+            ),
           );
         })
       ],
