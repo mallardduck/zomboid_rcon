@@ -63,7 +63,7 @@ class ServersListView extends ConsumerWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => RconPage(server: server)),
+                MaterialPageRoute(builder: (context) => RconPage(serverConfig: server)),
               );
             },
             onLongPress: () => showDialog<String>(
