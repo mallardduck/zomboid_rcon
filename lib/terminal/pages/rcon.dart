@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 import 'package:zomboid_rcon/servers/models/server.dart';
-import 'package:zomboid_rcon/terminal/zomboid_rcon_repl_bridge.dart';
+import 'package:zomboid_rcon/terminal/zomboid_rcon_repl.dart';
 import 'package:zomboid_rcon/zomboid_server.dart';
 
 class RconPage extends StatefulWidget {
@@ -19,8 +19,7 @@ class _RconPageState extends State<RconPage> {
     maxLines: 10000,
   );
 
-  late final ZomboidServer server;
-  late final ZomboidRconReplBridge pty;
+  late final ZomboidRconRepl repl;
   final terminalController = TerminalController();
 
   @override
@@ -37,12 +36,12 @@ class _RconPageState extends State<RconPage> {
   Future<void> _startRcon() async {
     terminal.write('Connecting...\r\n');
 
-    final server = await ZomboidServer.connect("192.168.32.124", 27015, password: "adminfam");
-    terminal.write('Connected\r\n');
-
-    pty = ZomboidRconReplBridge(terminal.write, server, terminal);
-    terminal.onOutput = pty.write;
-
+    repl = ZomboidRconRepl(
+      prompt: '>>>',
+      serverConfig: widget.serverConfig,
+      terminal: terminal,
+    );
+    await repl.init();
   }
 
   @override
@@ -57,6 +56,10 @@ class _RconPageState extends State<RconPage> {
         child: TerminalView(
           terminal,
           controller: terminalController,
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.keyV, control: true):
+              PasteTextIntent(SelectionChangedCause.keyboard),
+          },
           autofocus: true,
           backgroundOpacity: 0.7,
           onSecondaryTapDown: (details, offset) async {
@@ -74,7 +77,7 @@ class _RconPageState extends State<RconPage> {
             }
           },
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

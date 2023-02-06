@@ -12,11 +12,11 @@ class HelpParser {
 
   HelpParser(this.terminal, this.results);
 
-  void parse(void Function(String data) onOutput) {
+  void parse(void Function(String data) terminalOutput) {
     LineSplitter ls = const LineSplitter();
     var lines = Queue<String>.from(ls.convert(results));
-    onOutput.call(lines.first);
-    onOutput.call(Platform().lineSeparator);
+    terminalOutput.call(lines.first);
+    terminalOutput.call(Platform().lineSeparator);
     lines.removeFirst();
     for (final line in lines) {
       final List<String> parsed = parseLine(line);
@@ -25,22 +25,21 @@ class HelpParser {
       final String commandUse = parsed[2];
       final String commandExample = parsed[3];
       terminal.setForegroundColor256(2);
-      onOutput.call(" $commandName : ");
+      terminalOutput.call(" $commandName : ");
       terminal.setForegroundColor256(7);
-      onOutput.call(commandDescription);
+      terminalOutput.call(commandDescription);
       if (commandUse.isNotEmpty) {
-        onOutput.call(Platform().lineSeparator);
-        terminal.setForegroundColor256(9);
-        onOutput.call("    $commandUse");
+        terminalOutput.call(Platform().lineSeparator);
+        terminal.setForegroundColor256(6);
+        terminalOutput.call("    $commandUse");
       }
       if (commandExample.isNotEmpty) {
-        onOutput.call(Platform().lineSeparator);
-        terminal.setForegroundColor256(24);
-        onOutput.call("    $commandExample");
+        terminalOutput.call(Platform().lineSeparator);
+        terminal.setForegroundColor256(3);
+        terminalOutput.call("    $commandExample");
       }
       terminal.resetForeground();
-      onOutput.call(Platform().lineSeparator);
-      onOutput.call(Platform().lineSeparator);
+      terminalOutput.call(Platform().lineSeparator);
     }
   }
 
@@ -49,9 +48,7 @@ class HelpParser {
     var commandAndExtra = RegExp(r'\* (\S+) : (.*)$');
     final Match commandParts = commandAndExtra.allMatches(line).first;
     final String commandName = commandParts.group(1)!;
-    print("cmd: $commandName");
     String commandDescription = commandParts.group(2)!;
-    print("desc-1: $commandDescription");
 
     // Extract the Example subtext...
     var exampleRegex = RegExp(r'(.+)((For )?[e|E]x(ample)?:? .*)$');
@@ -60,8 +57,6 @@ class HelpParser {
     if (exampleParts.isNotEmpty) {
       commandDescription = exampleParts.first.group(1)!;
       commandExample = exampleParts.first.group(2)!;
-      print("ex: $commandExample");
-      print("desc-2: $commandDescription");
     }
 
     // Extract the Use subtext...
@@ -71,8 +66,6 @@ class HelpParser {
     if (useParts.isNotEmpty) {
       commandDescription = useParts.first.group(1)!;
       commandUse = useParts.first.group(2)!;
-      print("use: $commandUse");
-      print("desc-3: $commandDescription");
     }
 
     return [
