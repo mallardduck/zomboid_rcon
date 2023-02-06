@@ -1,10 +1,8 @@
 import 'dart:io';
 
 extension PlatformExtension on Platform {
-  String get lineSeparator => Platform.isWindows
+  String get lineSeparator => Platform.isWindows | Platform.isIOS | Platform.isMacOS
       ? '\r\n'
-      : Platform.isMacOS
-      ? '\r'
       : Platform.isLinux
       ? '\n'
       : '\n';
