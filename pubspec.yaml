@@ -43,6 +43,7 @@ dependencies:
   cli_repl: ^0.2.3
   source_server: ^4.0.0
   tuple: ^2.0.1
+  enough_platform_widgets: ^0.6.0
 
 dev_dependencies:
   flutter_test:

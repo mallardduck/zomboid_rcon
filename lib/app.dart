@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:enough_platform_widgets/enough_platform_widgets.dart';
+
 import 'package:zomboid_rcon/servers/pages/home.dart';
 
 class MyApp extends StatelessWidget {
@@ -6,12 +8,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Project Zomboid RCON',
-      theme: ThemeData(
-        primarySwatch: Colors.orange,
-      ),
-      home: const MyHomePage(title: 'Server List'),
+    final materialTheme = ThemeData(
+      primarySwatch: Colors.orange,
     );
+    final cupertinoTheme = MaterialBasedCupertinoThemeData(materialTheme: materialTheme);
+
+    return PlatformProvider(builder: (ctx) => PlatformSnackApp(
+      title: 'Project Zomboid RCON',
+      materialTheme: materialTheme,
+      cupertinoTheme: cupertinoTheme,
+      home: const MyHomePage(title: 'Server List'),
+    ));
   }
 }

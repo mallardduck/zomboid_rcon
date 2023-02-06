@@ -1,3 +1,4 @@
+import 'package:enough_platform_widgets/enough_platform_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,32 @@ class AddEditServerPage extends ConsumerStatefulWidget {
   ConsumerState<AddEditServerPage> createState() => _AddEditServerPageState();
 }
 
+PlatformTextFormField _preparePlatformTextFormField({
+  String? initialValue,
+  FormFieldValidator<String>? validator,
+  required String fieldName,
+  required String placeholder,
+  MaterialTextFormFieldData Function(MaterialTextFormFieldData ctx)? materialExtra,
+  CupertinoTextFormFieldData Function(CupertinoTextFormFieldData ctx)? cupertinoExtra,
+}) {
+  materialExtra ??= (ctx) => ctx;
+  cupertinoExtra ??= (ctx) => ctx;
+  return PlatformTextFormField(
+    initialValue: initialValue,
+    // The validator receives the text that the user has entered.
+    validator: validator,
+    material: (_, __) => materialExtra!.call(MaterialTextFormFieldData(
+      decoration: InputDecoration(
+        hintText: placeholder,
+      ),
+    )),
+    cupertino: (_, __) => cupertinoExtra!.call(CupertinoTextFormFieldData(
+      prefix: Text(fieldName),
+      placeholder: placeholder,
+    )),
+  );
+}
+
 class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
   final _formKey = GlobalKey<FormState>();
 
@@ -30,11 +57,11 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
       builder: (context, ref, child) {
         ServerNotifier notifier = ref.read(serversProvider.notifier);
 
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(widget.title),
+        return PlatformScaffold(
+          appBar: PlatformAppBar(
+            title: PlatformText(widget.title),
           ),
+          iosContentPadding: true,
           body: Form(
             key: _formKey,
             child: Padding(
@@ -43,11 +70,8 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 // TODO: Add padding here...
                 children: <Widget>[
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Enter a server name',
-                    ),
-                    initialValue: (widgetServer != null) ?widgetServer.name : '',
+                  _preparePlatformTextFormField(
+                    initialValue: (widgetServer != null) ?widgetServer.name : null,
                     // The validator receives the text that the user has entered.
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -56,11 +80,10 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                       nameValue = value;
                       return null;
                     },
+                    fieldName: 'Name',
+                    placeholder: 'Enter a server name',
                   ),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Enter the servers IP address',
-                    ),
+                  _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.address : '',
                     // The validator receives the text that the user has entered.
                     validator: (value) {
@@ -70,13 +93,10 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                       ipValue = value;
                       return null;
                     },
+                    fieldName: 'Address',
+                    placeholder: 'Enter the servers IP'
                   ),
-                  TextFormField(
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      hintText: 'Enter the servers RCON port number',
-                    ),
+                  _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ? widgetServer.port.toString() : portValue.toString(),
                     // The validator receives the text that the user has entered.
                     validator: (value) {
@@ -86,11 +106,25 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                       portValue = int.parse(value);
                       return null;
                     },
+                    fieldName: 'Port',
+                    placeholder: 'Enter the RCON port number',
+                    materialExtra: (MaterialTextFormFieldData ctx) {
+                      return MaterialTextFormFieldData(
+                        decoration: ctx.decoration,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      );
+                    },
+                    cupertinoExtra: (CupertinoTextFormFieldData ctx) {
+                      return CupertinoTextFormFieldData(
+                        prefix: ctx.prefix,
+                        placeholder: ctx.placeholder,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      );
+                    },
                   ),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Enter the servers RCON password',
-                    ),
+                  _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.password : '',
                     // The validator receives the text that the user has entered.
                     validator: (value) {
@@ -100,39 +134,46 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                       passwordValue = value;
                       return null;
                     },
+                    fieldName: 'Password',
+                    placeholder: 'Enter the RCON admin password',
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Validate returns true if the form is valid, or false otherwise.
-                        if (_formKey.currentState!.validate()) {
-                          // If the form is valid, display a snackbar. In the real world,
-                          // you'd often call a server or save the information in a database.
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Processing Data')),
-                          );
-                          _formKey.currentState?.save();
-                          if (widgetServer != null) {
-                            notifier.updateServer(widgetServer.copyWith(
-                              name: nameValue,
-                              address: ipValue,
-                              port: portValue,
-                              password: passwordValue,
-                            ));
-                          } else {
-                            notifier.addServer(Server(
-                              name: nameValue,
-                              address: ipValue,
-                              port: portValue,
-                              password: passwordValue,
-                            ));
+                  Row(
+                    children: [
+                      PlatformTextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: PlatformText('Cancel'),
+                      ),
+                      PlatformTextButton(
+                        onPressed: () {
+                          // Validate returns true if the form is valid, or false otherwise.
+                          if (_formKey.currentState!.validate()) {
+                            // If the form is valid, display a snackbar. In the real world,
+                            // you'd often call a server or save the information in a database.
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Processing Data')),
+                            );
+                            _formKey.currentState?.save();
+                            if (widgetServer != null) {
+                              notifier.updateServer(widgetServer.copyWith(
+                                name: nameValue,
+                                address: ipValue,
+                                port: portValue,
+                                password: passwordValue,
+                              ));
+                            } else {
+                              notifier.addServer(Server(
+                                name: nameValue,
+                                address: ipValue,
+                                port: portValue,
+                                password: passwordValue,
+                              ));
+                            }
+                            Navigator.pop(context);
                           }
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Submit'),
-                    ),
+                        },
+                        child: PlatformText('Submit'),
+                      )
+                    ],
                   ),
                 ],
               ),

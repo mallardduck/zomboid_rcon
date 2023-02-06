@@ -1,3 +1,4 @@
+import 'package:enough_platform_widgets/enough_platform_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
@@ -50,11 +51,11 @@ class _RconPageState extends State<RconPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: _onBackPressed,
-        child: Scaffold(
-          appBar: AppBar(
+        child: PlatformScaffold(
+          appBar: PlatformAppBar(
             // Here we take the value from the MyHomePage object that was created by
             // the App.build method, and use it to set our appbar title.
-            title: Text("Server: ${widget.serverConfig.name}"),
+            title: PlatformText("Server: ${widget.serverConfig.name}"),
           ),
           body: SafeArea(
             child: _buildTerminalView(),
