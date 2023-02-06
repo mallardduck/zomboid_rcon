@@ -24,6 +24,8 @@ class ZomboidRconRepl {
         required this.terminal,
         maxHistory = 50}) {
     terminal.onOutput = write;
+    terminal.buffer.clear();
+    terminal.buffer.restoreCursor();
     commandHistory = CommandHistory(maxHistory: maxHistory);
     _adapter = ZomboidRconReplBridge(repl: this);
   }

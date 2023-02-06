@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 import 'package:zomboid_rcon/servers/models/server.dart';
 import 'package:zomboid_rcon/terminal/zomboid_rcon_repl.dart';
-import 'package:zomboid_rcon/zomboid_server.dart';
 
 class RconPage extends StatefulWidget {
   const RconPage({super.key, required this.serverConfig});
