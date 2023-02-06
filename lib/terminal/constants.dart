@@ -21,3 +21,7 @@ class KeyCodes {
   static const leftBracket = 91;
   static const backspace = 127;
 }
+
+enum ShellCommand {
+  clear, reset, exit,
+}

@@ -33,50 +33,65 @@ class _RconPageState extends State<RconPage> {
   }
 
   Future<void> _startRcon() async {
-    terminal.write('Connecting...\r\n');
-
     repl = ZomboidRconRepl(
       prompt: '>>>',
       serverConfig: widget.serverConfig,
       terminal: terminal,
+      onExit: _onExitCalled,
     );
     await repl.init();
   }
 
+  void _onExitCalled() {
+    Navigator.of(context).pop(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text("Server: ${widget.serverConfig.name}"),
-      ),
-      body: SafeArea(
-        child: TerminalView(
-          terminal,
-          controller: terminalController,
-          shortcuts: const {
-            SingleActivator(LogicalKeyboardKey.keyV, control: true):
-              PasteTextIntent(SelectionChangedCause.keyboard),
-          },
-          autofocus: true,
-          backgroundOpacity: 0.7,
-          onSecondaryTapDown: (details, offset) async {
-            final selection = terminalController.selection;
-            if (selection != null) {
-              final text = terminal.buffer.getText(selection);
-              terminalController.clearSelection();
-              await Clipboard.setData(ClipboardData(text: text));
-            } else {
-              final data = await Clipboard.getData('text/plain');
-              final text = data?.text;
-              if (text != null) {
-                terminal.paste(text);
-              }
-            }
-          },
+    return WillPopScope(
+        onWillPop: _onBackPressed,
+        child: Scaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that was created by
+            // the App.build method, and use it to set our appbar title.
+            title: Text("Server: ${widget.serverConfig.name}"),
+          ),
+          body: SafeArea(
+            child: _buildTerminalView(),
+          ),
         ),
-      ),
     );
+  }
+
+  Future<bool> _onBackPressed() async {
+    await repl.exit();
+    return true;
+  }
+
+  TerminalView _buildTerminalView() {
+    return TerminalView(
+        terminal,
+        controller: terminalController,
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.keyV, control: true):
+            PasteTextIntent(SelectionChangedCause.keyboard),
+        },
+        autofocus: true,
+        backgroundOpacity: 0.7,
+        onSecondaryTapDown: (details, offset) async {
+          final selection = terminalController.selection;
+          if (selection != null) {
+            final text = terminal.buffer.getText(selection);
+            terminalController.clearSelection();
+            await Clipboard.setData(ClipboardData(text: text));
+          } else {
+            final data = await Clipboard.getData('text/plain');
+            final text = data?.text;
+            if (text != null) {
+              terminal.paste(text);
+            }
+          }
+        },
+      );
   }
 }

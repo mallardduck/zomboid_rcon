@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:xterm/xterm.dart';
 import 'package:zomboid_rcon/extensions.dart';
+import 'package:zomboid_rcon/terminal/constants.dart';
 
 class HelpParser {
   final String results;
@@ -18,12 +19,19 @@ class HelpParser {
     terminalOutput.call(lines.first);
     terminalOutput.call(Platform().lineSeparator);
     lines.removeFirst();
+    Queue<List<String>> commands = Queue.from(lines.map((e) => parseLine(e)));
+    _renderLines(commands, terminalOutput);
+    terminalOutput.call(Platform().lineSeparator);
+    terminalOutput.call("List of ZomboidRcon Shell Commands:${Platform().lineSeparator}");
+    _renderLines(_shellCommands(), terminalOutput);
+  }
+
+  void _renderLines(Queue<List<String>> lines, void Function(String data) terminalOutput) {
     for (final line in lines) {
-      final List<String> parsed = parseLine(line);
-      final String commandName = parsed[0];
-      final String commandDescription = parsed[1];
-      final String commandUse = parsed[2];
-      final String commandExample = parsed[3];
+      final String commandName = line[0];
+      final String commandDescription = line[1];
+      final String commandUse = line[2];
+      final String commandExample = line[3];
       terminal.setForegroundColor256(2);
       terminalOutput.call(" $commandName : ");
       terminal.setForegroundColor256(7);
@@ -75,4 +83,22 @@ class HelpParser {
       commandExample,
     ];
   }
+
+  Queue<List<String>> _shellCommands() => Queue<List<String>>.from([
+    [
+      ShellCommand.exit.name,
+      "Exit the zomboid RCON shell.",
+      '', '',
+    ],
+    [
+      ShellCommand.clear.name,
+      "Clears the current terminal buffer.",
+      '', '',
+    ],
+    [
+      ShellCommand.reset.name,
+      "Resets command history & clear buffer.",
+      '', '',
+    ],
+  ]);
 }

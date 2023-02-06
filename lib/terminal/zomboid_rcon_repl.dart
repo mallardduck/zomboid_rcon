@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 
 import 'package:tuple/tuple.dart';
@@ -15,39 +16,50 @@ class ZomboidRconRepl {
   String prompt;
   final Server serverConfig;
   final Terminal terminal;
-  late final ZomboidServer server;
+  late final RconSocket server;
   late final ZomboidRconReplBridge _adapter;
+  bool isLoggedIn = false;
+
+  final void Function() onExit;
 
   ZomboidRconRepl(
       {this.prompt = '',
         required this.serverConfig,
         required this.terminal,
+        required this.onExit,
         maxHistory = 50}) {
     terminal.onOutput = write;
-    terminal.buffer.clear();
-    terminal.buffer.restoreCursor();
     commandHistory = CommandHistory(maxHistory: maxHistory);
-    _adapter = ZomboidRconReplBridge(repl: this);
   }
 
   late final CommandHistory commandHistory;
 
   Future<ZomboidRconRepl> init() async {
-    server = await ZomboidServer.connect(serverConfig.address, serverConfig.port, password: serverConfig.password);
+    terminal.write('Connecting...\r\n');
+    server = await ZomboidServer.connect(
+        serverConfig.address,
+        serverConfig.port,
+    );
+    terminal.write('Authenticating...\r\n');
+    bool isAuthed = await server.authenticate(serverConfig.password);
+    _adapter = ZomboidRconReplBridge(repl: this);
+    if (isAuthed) isLoggedIn = isAuthed;
     return this;
   }
 
   void write(String input) async => _adapter.onInput(input);
 
   /// Kills and cleans up the REPL.
-  FutureOr<void> exit() => _adapter.exit();
+  FutureOr<void> exit() {
+    if (isLoggedIn) _adapter.exit();
+  }
 }
 
 class ZomboidRconReplBridge {
   final ZomboidRconRepl repl;
 
   Server get serverConfig => repl.serverConfig;
-  ZomboidServer get server => repl.server;
+  RconSocket get server => repl.server;
   Terminal get terminal => repl.terminal;
   OutputStream get toTerminal => terminal.write;
   CommandHistory get commandHistory => repl.commandHistory;
@@ -142,7 +154,11 @@ class ZomboidRconReplBridge {
   Future<bool> processCommand(String command) async {
     if (command == '') return false;
     commandHistory.push(command);
-    if (command == ShellCommand.reset.name) {
+    if (command == ShellCommand.exit.name) {
+      await repl.exit();
+      repl.onExit();
+      return false;
+    } else if (command == ShellCommand.reset.name) {
       commandHistory.clearStack();
       terminal.buffer.clear();
       resetCursor();
@@ -170,12 +186,8 @@ class ZomboidRconReplBridge {
   }
 
   exit() {
-    server.close();
+    if (repl.isLoggedIn) server.close();
   }
-}
-
-enum ShellCommand {
-  clear, reset;
 }
 
 enum HistoryDirection {

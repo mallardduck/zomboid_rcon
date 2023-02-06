@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:source_server/source_server.dart';
+export 'package:source_server/source_server.dart';
 
 class ZomboidServer implements RconSocket, QuerySocket {
   /// The address used for the connection.
@@ -31,7 +32,7 @@ class ZomboidServer implements RconSocket, QuerySocket {
       dynamic address,
       int port, {
         String? password,
-        Duration timeout = const Duration(seconds: 30),
+        Duration timeout = const Duration(seconds: 42),
       }) async {
     final querySocket = await QuerySocket.connect(address, port);
     RconSocket? rconSocket;
