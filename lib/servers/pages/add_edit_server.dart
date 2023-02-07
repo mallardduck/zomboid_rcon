@@ -48,7 +48,7 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
   Widget build(BuildContext context) {
     late final String nameValue;
     late final String ipValue;
-    int portValue = 16260;
+    int portValue = 12345;
     late final String passwordValue;
     Server? widgetServer = widget.editServer;
 
@@ -143,7 +143,7 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                           // Validate returns true if the form is valid, or false otherwise.
                           if (_formKey.currentState!.validate()) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Processing Data')),
+                              const SnackBar(content: Text('Saving...')),
                             );
                             _formKey.currentState?.save();
                             if (widgetServer != null) {
@@ -162,6 +162,7 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                               ));
                             }
                             Navigator.pop(context);
+                            ScaffoldMessenger.of(context).clearSnackBars();
                           }
                         },
                         child: PlatformText('Submit'),
