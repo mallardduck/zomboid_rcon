@@ -28,7 +28,6 @@ PlatformTextFormField _preparePlatformTextFormField({
   cupertinoExtra ??= (ctx) => ctx;
   return PlatformTextFormField(
     initialValue: initialValue,
-    // The validator receives the text that the user has entered.
     validator: validator,
     material: (_, __) => materialExtra!.call(MaterialTextFormFieldData(
       decoration: InputDecoration(
@@ -72,7 +71,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                 children: <Widget>[
                   _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.name : null,
-                    // The validator receives the text that the user has entered.
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a server name';
@@ -85,7 +83,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                   ),
                   _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.address : '',
-                    // The validator receives the text that the user has entered.
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a valid server IP';
@@ -98,7 +95,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                   ),
                   _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ? widgetServer.port.toString() : portValue.toString(),
-                    // The validator receives the text that the user has entered.
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a valid server IP';
@@ -126,7 +122,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                   ),
                   _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.password : '',
-                    // The validator receives the text that the user has entered.
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the RCON password';
@@ -147,8 +142,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                         onPressed: () {
                           // Validate returns true if the form is valid, or false otherwise.
                           if (_formKey.currentState!.validate()) {
-                            // If the form is valid, display a snackbar. In the real world,
-                            // you'd often call a server or save the information in a database.
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Processing Data')),
                             );
