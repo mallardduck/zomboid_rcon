@@ -56,8 +56,8 @@ class ServersListView extends ConsumerWidget {
           children: [
             PlatformText('No Servers Yet!'),
             PlatformTextButton(
-              child: PlatformText('Add Server'),
               onPressed: _launchForm(context),
+              child: PlatformText('Add Server'),
             ),
           ],
         ),

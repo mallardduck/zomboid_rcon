@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-
 
 import 'package:tuple/tuple.dart';
 import 'package:xterm/xterm.dart';
@@ -178,10 +175,10 @@ class ZomboidRconReplBridge {
     String results = await server.command(command);
     switch (command.trim()) {
       case 'help':
-        HelpParser(terminal, results).parse(toTerminal);
+        HelpParserRenderer(terminal, results).render();
         break;
       default:
-        toTerminal.call(results);
+        DefaultParserRenderer(terminal, results).render();
     }
   }
 

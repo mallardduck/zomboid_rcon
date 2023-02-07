@@ -1,32 +1,26 @@
 import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:xterm/xterm.dart';
-import 'package:zomboid_rcon/extensions.dart';
 import 'package:zomboid_rcon/terminal/constants.dart';
 
-class HelpParser {
-  final String results;
+import 'base_parser_renderer.dart';
 
-  Terminal terminal;
+class HelpParserRenderer extends BaseParserRenderer {
+  HelpParserRenderer(super.terminal, super.results);
 
-  HelpParser(this.terminal, this.results);
-
-  void parse(void Function(String data) terminalOutput) {
-    LineSplitter ls = const LineSplitter();
-    var lines = Queue<String>.from(ls.convert(results));
+  @override
+  void render() {
+    Queue<String> lines = splitLines;
     terminalOutput.call(lines.first);
-    terminalOutput.call(Platform().lineSeparator);
+    terminalOutput.call(lineSeparator);
     lines.removeFirst();
-    Queue<List<String>> commands = Queue.from(lines.map((e) => parseLine(e)));
-    _renderLines(commands, terminalOutput);
-    terminalOutput.call(Platform().lineSeparator);
-    terminalOutput.call("List of ZomboidRcon Shell Commands:${Platform().lineSeparator}");
-    _renderLines(_shellCommands(), terminalOutput);
+    Queue<List<String>> commands = Queue.from(lines.map((e) => _parseLine(e)));
+    _renderLines(commands);
+    terminalOutput.call(lineSeparator);
+    terminalOutput.call("List of ZomboidRcon Shell Commands:$lineSeparator");
+    _renderLines(_shellCommands());
   }
 
-  void _renderLines(Queue<List<String>> lines, void Function(String data) terminalOutput) {
+  void _renderLines(Queue<List<String>> lines) {
     for (final line in lines) {
       final String commandName = line[0];
       final String commandDescription = line[1];
@@ -37,21 +31,21 @@ class HelpParser {
       terminal.setForegroundColor256(7);
       terminalOutput.call(commandDescription);
       if (commandUse.isNotEmpty) {
-        terminalOutput.call(Platform().lineSeparator);
+        terminalOutput.call(lineSeparator);
         terminal.setForegroundColor256(6);
         terminalOutput.call("    $commandUse");
       }
       if (commandExample.isNotEmpty) {
-        terminalOutput.call(Platform().lineSeparator);
+        terminalOutput.call(lineSeparator);
         terminal.setForegroundColor256(3);
         terminalOutput.call("    $commandExample");
       }
       terminal.resetForeground();
-      terminalOutput.call(Platform().lineSeparator);
+      terminalOutput.call(lineSeparator);
     }
   }
 
-  List<String> parseLine(String line) {
+  List<String> _parseLine(String line) {
     // First split the command name from the metadata.
     var commandAndExtra = RegExp(r'\* (\S+) : (.*)$');
     final Match commandParts = commandAndExtra.allMatches(line).first;
