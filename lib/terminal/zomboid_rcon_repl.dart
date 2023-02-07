@@ -177,6 +177,9 @@ class ZomboidRconReplBridge {
       case 'help':
         HelpParserRenderer(terminal, results).render();
         break;
+      case 'showoptions':
+        ShowOptionsParserRenderer(terminal, results).render();
+        break;
       default:
         DefaultParserRenderer(terminal, results).render();
     }
