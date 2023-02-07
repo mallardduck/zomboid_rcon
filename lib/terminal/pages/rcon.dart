@@ -22,6 +22,8 @@ class _RconPageState extends State<RconPage> {
   late final ZomboidRconRepl repl;
   final terminalController = TerminalController();
 
+  bool _isConnected = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +43,9 @@ class _RconPageState extends State<RconPage> {
       onExit: _onExitCalled,
     );
     await repl.init();
+    setState(() {
+      _isConnected = true;
+    });
   }
 
   void _onExitCalled() {
@@ -58,7 +63,7 @@ class _RconPageState extends State<RconPage> {
             title: PlatformText("Server: ${widget.serverConfig.name}"),
           ),
           body: SafeArea(
-            child: _buildTerminalView(),
+            child: _isConnected ? _buildTerminalView() : const Text('Not Connected'),
           ),
         ),
     );
