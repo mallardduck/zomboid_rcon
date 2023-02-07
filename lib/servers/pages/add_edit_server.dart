@@ -2,6 +2,7 @@ import 'package:enough_platform_widgets/enough_platform_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:zomboid_rcon/database.dart';
 
 import 'package:zomboid_rcon/servers/servers.dart';
 
@@ -67,7 +68,6 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                // TODO: Add padding here...
                 children: <Widget>[
                   _preparePlatformTextFormField(
                     initialValue: (widgetServer != null) ?widgetServer.name : null,
@@ -147,19 +147,21 @@ class _AddEditServerPageState extends ConsumerState<AddEditServerPage> {
                             );
                             _formKey.currentState?.save();
                             if (widgetServer != null) {
-                              notifier.updateServer(widgetServer.copyWith(
-                                name: nameValue,
-                                address: ipValue,
-                                port: portValue,
-                                password: passwordValue,
-                              ));
+                              notifier.updateServer(
+                                updated: widgetServer.copyWith(
+                                  name: nameValue,
+                                  address: ipValue,
+                                  port: portValue,
+                                  password: passwordValue,
+                                ),
+                              );
                             } else {
-                              notifier.addServer(Server(
+                              notifier.addServer(
                                 name: nameValue,
                                 address: ipValue,
                                 port: portValue,
                                 password: passwordValue,
-                              ));
+                              );
                             }
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).clearSnackBars();

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:tuple/tuple.dart';
 import 'package:xterm/xterm.dart';
-import 'package:zomboid_rcon/servers/models/server.dart';
+import 'package:zomboid_rcon/database.dart';
 import 'package:zomboid_rcon/terminal/constants.dart';
 import 'package:zomboid_rcon/terminal/parsers.dart';
 import 'package:zomboid_rcon/zomboid_server.dart';
@@ -115,9 +115,9 @@ class ZomboidRconReplBridge {
           toTerminal.call(repl.prompt);
           break;
         case KeyCodes.carriageReturn:
-        String command = terminal.buffer.currentLine.toString().replaceFirst(RegExp(repl.prompt + r'(\s+)?'), "");
-        bool res = await processCommand(command);
-          commandHistory.resetCursor(); // TODO: decide if this is in the right spot
+          String command = terminal.buffer.currentLine.toString().replaceFirst(RegExp(repl.prompt + r'(\s+)?'), "");
+          bool res = await processCommand(command);
+          commandHistory.resetCursor();
           if (!res) break;
           toTerminal.call('\r\n');
           toTerminal.call(repl.prompt);

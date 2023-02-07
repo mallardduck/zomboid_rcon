@@ -2,7 +2,7 @@ import 'package:enough_platform_widgets/enough_platform_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
-import 'package:zomboid_rcon/servers/models/server.dart';
+import 'package:zomboid_rcon/database.dart';
 import 'package:zomboid_rcon/terminal/zomboid_rcon_repl.dart';
 
 class RconPage extends StatefulWidget {
@@ -42,6 +42,7 @@ class _RconPageState extends State<RconPage> {
       terminal: terminal,
       onExit: _onExitCalled,
     );
+    // TODO: actually handle the async init better - catch errors connecting, throw error, close shell.
     await repl.init();
     setState(() {
       _isConnected = true;
