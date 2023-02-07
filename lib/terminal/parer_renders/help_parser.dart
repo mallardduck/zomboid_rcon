@@ -13,8 +13,7 @@ class HelpParserRenderer extends BaseParserRenderer {
     terminalOutput.call(lines.first);
     terminalOutput.call(lineSeparator);
     lines.removeFirst();
-    Queue<List<String>> commands = Queue.from(lines.map((e) => _parseLine(e)));
-    _renderLines(commands);
+    _renderLines(Queue.from(lines.map((e) => _parseLine(e))));
     terminalOutput.call(lineSeparator);
     terminalOutput.call("List of ZomboidRcon Shell Commands:$lineSeparator");
     _renderLines(_shellCommands());
