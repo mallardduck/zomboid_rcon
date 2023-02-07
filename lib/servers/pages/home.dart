@@ -8,6 +8,15 @@ import 'package:zomboid_rcon/servers/pages/add_edit_server.dart';
 import 'package:zomboid_rcon/servers/servers.dart';
 import 'package:zomboid_rcon/terminal/pages/rcon.dart';
 
+Null Function() _launchForm(BuildContext context) {
+  return () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddEditServerPage(title: "Add Server")),
+    );
+  };
+}
+
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -22,12 +31,7 @@ class MyHomePage extends StatelessWidget {
         title: PlatformText(title),
         trailingActions: <Widget>[
           PlatformIconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddEditServerPage(title: "Add Server")),
-              );
-            },
+            onPressed: _launchForm(context),
             icon: Icon(PlatformIcons(context).add),
           )
         ],
@@ -36,7 +40,6 @@ class MyHomePage extends StatelessWidget {
       iosContentPadding: true
     );
   }
-
 }
 
 class ServersListView extends ConsumerWidget {
@@ -47,24 +50,36 @@ class ServersListView extends ConsumerWidget {
     List<Server> servers = ref.watch(serversProvider);
 
     if (servers.isEmpty) {
-      return const Text('No Servers');
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            PlatformText('No Servers Yet!'),
+            PlatformTextButton(
+              child: PlatformText('Add Server'),
+              onPressed: _launchForm(context),
+            ),
+          ],
+        ),
+      );
     }
 
-
-    int index = 0;
-    var children = [
-      ...servers.map((server) {
-        index++;
-        return _buildListItem(index, server, context, ref);
-      })
-    ];
+    var children = _buildListItems(context, ref, servers);
     return PlatformWidget(
       material: (_, __) => ListView(children: children),
       cupertino: (_, __) => CupertinoListSection(children: children),
     );
   }
 
-  PlatformWidget _buildListItem(int index, Server server, BuildContext context, WidgetRef ref) {
+  List<PlatformWidget> _buildListItems(BuildContext context, WidgetRef ref, List<Server> servers) {
+    int index = 0;
+    return servers.map((server) {
+      index++;
+      return _buildListItem(context, ref, index, server);
+    }).toList();
+  }
+
+  PlatformWidget _buildListItem(BuildContext context, WidgetRef ref, int index, Server server) {
     return PlatformWidget(
       material: (_, __) => ListTile(
         title: Text("$index - ${server.name}"),
