@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:enough_platform_widgets/enough_platform_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 import 'package:zomboid_rcon/database.dart';
 import 'package:zomboid_rcon/terminal/zomboid_rcon_repl.dart';
+import 'package:zomboid_rcon/zomboid_server.dart';
 
 class RconPage extends StatefulWidget {
   const RconPage({super.key, required this.serverConfig});
@@ -19,10 +23,19 @@ class _RconPageState extends State<RconPage> {
     maxLines: 10000,
   );
 
-  late final ZomboidRconRepl repl;
+  late final ZomboidRconRepl repl = ZomboidRconRepl(
+    prompt: '>>>',
+    serverConfig: widget.serverConfig,
+    terminal: terminal,
+    onExit: _onExitCalled,
+  );
+  late final Stream<String> _statusStream = repl.stream;
   final terminalController = TerminalController();
 
   bool _isConnected = false;
+
+  bool _isError = false;
+  Exception? _errorException;
 
   @override
   void initState() {
@@ -36,17 +49,22 @@ class _RconPageState extends State<RconPage> {
   }
 
   Future<void> _startRcon() async {
-    repl = ZomboidRconRepl(
-      prompt: '>>>',
-      serverConfig: widget.serverConfig,
-      terminal: terminal,
-      onExit: _onExitCalled,
-    );
     // TODO: actually handle the async init better - catch errors connecting, throw error, close shell.
-    await repl.init();
-    setState(() {
-      _isConnected = true;
-    });
+    try {
+      await repl.init();
+      setState(() {
+        _isConnected = true;
+      });
+    } on Exception catch(e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error connecting to server...')),
+      );
+      setState(() {
+        _isConnected = false;
+        _isError = true;
+        _errorException = e;
+      });
+    }
   }
 
   void _onExitCalled() {
@@ -64,7 +82,11 @@ class _RconPageState extends State<RconPage> {
             title: PlatformText("Server: ${widget.serverConfig.name}"),
           ),
           body: SafeArea(
-            child: _isConnected ? _buildTerminalView() : const Text('Not Connected'),
+            child:  _isConnected ?
+                      _buildTerminalView() :
+                        _isError ?
+                          _buildExceptionView() :
+                          _buildConnectingView(),
           ),
         ),
     );
@@ -100,5 +122,47 @@ class _RconPageState extends State<RconPage> {
           }
         },
       );
+  }
+
+  _buildExceptionView() {
+    try {
+      throw _errorException!;
+    } on SocketException catch(e) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Error: ${e.message}'),
+          Text('address = ${e.address?.address}, port = ${e.port}'),
+        ],
+      );
+    } on RconAuthenticationException catch(e) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Error: ${e.message}'),
+        ],
+      );
+    } on TimeoutException {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Error: Timeout while connecting to server.'),
+        ],
+      );
+    }
+  }
+
+  _buildConnectingView() {
+    return StreamBuilder<String>(
+      stream: _statusStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text('No status data yet');
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          return const Text('Connected!');
+        }
+        return Text(snapshot.data ?? '');
+      },
+    );
   }
 }

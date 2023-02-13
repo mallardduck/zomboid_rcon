@@ -19,6 +19,9 @@ class ZomboidRconRepl {
 
   final void Function() onExit;
 
+  final _statusController = StreamController<String>();
+  Stream<String> get stream => _statusController.stream;
+
   ZomboidRconRepl(
       {this.prompt = '',
         required this.serverConfig,
@@ -31,17 +34,18 @@ class ZomboidRconRepl {
 
   late final CommandHistory commandHistory;
 
-  Future<ZomboidRconRepl> init() async {
-    terminal.write('Connecting...\r\n');
+  Future<void> init() async {
+    _statusController.sink.add('Connecting...');
     server = await ZomboidServer.connect(
         serverConfig.address,
         serverConfig.port,
     );
-    terminal.write('Authenticating...\r\n');
+    _statusController.sink.add('Connected');
+    _statusController.sink.add('Authenticating...');
     bool isAuthed = await server.authenticate(serverConfig.password);
+    isAuthed ? _statusController.sink.add('Authenticated') : _statusController.sink.add('Failed to authenticate');
     _adapter = ZomboidRconReplBridge(repl: this);
     if (isAuthed) isLoggedIn = isAuthed;
-    return this;
   }
 
   void write(String input) async => _adapter.onInput(input);
