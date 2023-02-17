@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:tuple/tuple.dart';
 import 'package:xterm/xterm.dart';
@@ -167,6 +168,14 @@ class ZomboidRconReplBridge {
     } else if (command == ShellCommand.clear.name) {
       terminal.buffer.clear();
       resetCursor();
+      return false;
+    } else if (command == SpecialCommand.quit.name) {
+      toTerminal.call('\r\nThis command will shut off the server, then exit.\r\n');
+      sleep(const Duration(seconds: 2));
+      await server.command(command); // Intentionally skip parsing, only execute raw command
+      sleep(const Duration(seconds: 1));
+      await repl.exit();
+      repl.onExit();
       return false;
     } else {
       toTerminal.call('\r\n');
