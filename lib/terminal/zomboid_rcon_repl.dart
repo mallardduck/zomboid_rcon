@@ -53,6 +53,7 @@ class ZomboidRconRepl {
 
   /// Kills and cleans up the REPL.
   FutureOr<void> exit() {
+    _statusController.sink.add('Exiting...');
     if (isLoggedIn) _adapter.exit();
   }
 }
@@ -179,12 +180,12 @@ class ZomboidRconReplBridge {
       return false;
     } else {
       toTerminal.call('\r\n');
-      await parseCommandResults(command);
+      await executeCommandThenParseResults(command);
     }
     return true;
   }
 
-  Future<void> parseCommandResults(String command) async {
+  Future<void> executeCommandThenParseResults(String command) async {
     String results = await server.command(command);
     switch (command.trim()) {
       case 'help':

@@ -49,7 +49,6 @@ class _RconPageState extends State<RconPage> {
   }
 
   Future<void> _startRcon() async {
-    // TODO: actually handle the async init better - catch errors connecting, throw error, close shell.
     try {
       await repl.init();
       setState(() {
