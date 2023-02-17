@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:tuple/tuple.dart';
 import 'package:xterm/xterm.dart';
@@ -19,6 +20,9 @@ class ZomboidRconRepl {
 
   final void Function() onExit;
 
+  final _statusController = StreamController<String>();
+  Stream<String> get stream => _statusController.stream;
+
   ZomboidRconRepl(
       {this.prompt = '',
         required this.serverConfig,
@@ -31,23 +35,25 @@ class ZomboidRconRepl {
 
   late final CommandHistory commandHistory;
 
-  Future<ZomboidRconRepl> init() async {
-    terminal.write('Connecting...\r\n');
+  Future<void> init() async {
+    _statusController.sink.add('Connecting...');
     server = await ZomboidServer.connect(
         serverConfig.address,
         serverConfig.port,
     );
-    terminal.write('Authenticating...\r\n');
+    _statusController.sink.add('Connected');
+    _statusController.sink.add('Authenticating...');
     bool isAuthed = await server.authenticate(serverConfig.password);
+    isAuthed ? _statusController.sink.add('Authenticated') : _statusController.sink.add('Failed to authenticate');
     _adapter = ZomboidRconReplBridge(repl: this);
     if (isAuthed) isLoggedIn = isAuthed;
-    return this;
   }
 
   void write(String input) async => _adapter.onInput(input);
 
   /// Kills and cleans up the REPL.
   FutureOr<void> exit() {
+    _statusController.sink.add('Exiting...');
     if (isLoggedIn) _adapter.exit();
   }
 }
@@ -164,14 +170,22 @@ class ZomboidRconReplBridge {
       terminal.buffer.clear();
       resetCursor();
       return false;
+    } else if (command == SpecialCommand.quit.name) {
+      toTerminal.call('\r\nThis command will shut off the server, then exit.\r\n');
+      sleep(const Duration(seconds: 2));
+      await server.command(command); // Intentionally skip parsing, only execute raw command
+      sleep(const Duration(seconds: 1));
+      await repl.exit();
+      repl.onExit();
+      return false;
     } else {
       toTerminal.call('\r\n');
-      await parseCommandResults(command);
+      await executeCommandThenParseResults(command);
     }
     return true;
   }
 
-  Future<void> parseCommandResults(String command) async {
+  Future<void> executeCommandThenParseResults(String command) async {
     String results = await server.command(command);
     switch (command.trim()) {
       case 'help':

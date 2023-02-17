@@ -25,3 +25,7 @@ class KeyCodes {
 enum ShellCommand {
   clear, reset, exit,
 }
+
+enum SpecialCommand {
+  quit,
+}
